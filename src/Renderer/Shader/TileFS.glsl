@@ -13,6 +13,8 @@
 uniform vec3        diffuse;
 uniform float       opacity;
 varying vec3        vUv; // uv_0.x/uv_1.x, uv_0.y, uv_1.y
+varying vec2        vWgs84;
+varying vec2        vL93;
 
 void main() {
     #include <logdepthbuf_fragment>
@@ -55,6 +57,8 @@ void main() {
     #include <itowns/fog_fragment>
     #include <itowns/lighting_fragment>
     #include <itowns/overlay_fragment>
-
 #endif
+gl_FragColor.rg = mix(gl_FragColor.rg,fract(vWgs84/10.),0.1);
+if (vL93.x > -357823.2365 && vL93.x < 1313632.3628 && vL93.y >  6037008.6939 && vL93.y < 7230727.3772)
+       gl_FragColor.rg = mix(gl_FragColor.rg,fract(vL93/500000.),0.5);
 }

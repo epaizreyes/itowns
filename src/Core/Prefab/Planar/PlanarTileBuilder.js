@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import Coordinates from 'Core/Geographic/Coordinates';
-import Extent from 'Core/Geographic/Extent';
 
 const quaternion = new THREE.Quaternion();
 const center = new THREE.Vector3();
@@ -63,7 +62,7 @@ class PlanarTileBuilder {
         // compute sharable extent to pool the geometries
         // the geometry in common extent is identical to the existing input
         // with a translation
-        const sharableExtent = new Extent(extent.crs, 0, Math.abs(extent.west - extent.east), 0, Math.abs(extent.north - extent.south));
+        const sharableExtent = extent;
         return {
             sharableExtent,
             quaternion,

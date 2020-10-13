@@ -10,8 +10,9 @@ const cacheTile = new Cache();
 export default function newTileGeometry(builder, params) {
     const { sharableExtent, quaternion, position } = builder.computeSharableExtent(params.extent);
     const south = sharableExtent.south.toFixed(6);
+    const east = sharableExtent.east.toFixed(6);
     const bufferKey = `${builder.crs}_${params.disableSkirt ? 0 : 1}_${params.segment}`;
-    let promiseGeometry = cacheTile.get(south, params.level, bufferKey);
+    let promiseGeometry = cacheTile.get(east, south, params.level, bufferKey);
 
     // build geometry if doesn't exist
     if (!promiseGeometry) {
@@ -45,13 +46,13 @@ export default function newTileGeometry(builder, params) {
         buffers.uvs[0] = cachedBuffers.uv;
         buffers.position = new THREE.BufferAttribute(buffers.position, 3);
         buffers.normal = new THREE.BufferAttribute(buffers.normal, 3);
-        if (params.builder.uvCount > 1) {
-            buffers.uvs[1] = new THREE.BufferAttribute(buffers.uvs[1], 1);
+        buffers.wgs84 = new THREE.BufferAttribute(buffers.wgs84, 2);
+        buffers.l93 = new THREE.BufferAttribute(buffers.l93, 2);
+        for (let i = 1; i < params.builder.uvCount; i++) {
+            buffers.uvs[i] = new THREE.BufferAttribute(buffers.uvs[i], 2);
         }
-
         const geometry = new TileGeometry(params, buffers);
         geometry.OBB = new OBB(geometry.boundingBox.min, geometry.boundingBox.max);
-
         geometry._count = 0;
         geometry.dispose = () => {
             geometry._count--;

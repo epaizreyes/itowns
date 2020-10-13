@@ -1,0 +1,96 @@
+<html>
+    <head>
+        <title>Itowns - Image Projection</title>
+
+        <meta charset="UTF-8">
+        <link rel="stylesheet" type="text/css" href="css/example.css">
+        <link rel="stylesheet" type="text/css" href="css/LoadingScreen.css">
+
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.6/dat.gui.min.js"></script>
+    </head>
+    <body>
+        <div id="viewerDiv"></div>
+        <span id="divScaleWidget"> Scale </span>
+
+        <script src="js/GUI/GuiTools.js"></script>
+        <script src="../dist/itowns.js"></script>
+        <script src="js/GUI/LoadingScreen.js"></script>
+        <script src="../dist/debug.js"></script>
+        <script type="text/javascript">
+            // # Simple Globe viewer
+            // Define initial camera position
+            var placement = {
+                coord: new itowns.Coordinates('EPSG:4326', 2.351323, 48.856712),
+                range: 25000000,
+            }
+            var minDistance = 10000000;
+            var maxDistance = 30000000;
+
+            // `viewerDiv` will contain iTowns' rendering area (`<canvas>`)
+            var viewerDiv = document.getElementById('viewerDiv');
+
+            // Instanciate iTowns GlobeView*
+            var view = new itowns.GlobeView(viewerDiv, placement);
+            setupLoadingScreen(viewerDiv, view);
+
+            // Add one imagery layer to the scene 
+            // This layer is defined in a json file but it could be defined as a plain js
+            // object. See Layer* for more info.
+            itowns.Fetcher.json('./layers/JSONLayers/Ortho.json').then(function _(config) {
+                config.source = new itowns.WMTSSource(config.source);
+                var layer = new itowns.ColorLayer('Ortho', config);
+                view.addLayer(layer).then(menuGlobe.addLayerGUI.bind(menuGlobe));
+            });
+            // Add two elevation layers.
+            // These will deform iTowns globe geometry to represent terrain elevation.
+            function addElevationLayerFromConfig(config) {
+                config.source = new itowns.WMTSSource(config.source);
+                var layer = new itowns.ElevationLayer(config.id, config);
+                view.addLayer(layer).then(menuGlobe.addLayerGUI.bind(menuGlobe));
+            }
+            itowns.Fetcher.json('./layers/JSONLayers/WORLD_DTM.json').then(addElevationLayerFromConfig);
+            itowns.Fetcher.json('./layers/JSONLayers/IGN_MNT_HIGHRES.json').then(addElevationLayerFromConfig);
+
+            var menuGlobe = new GuiTools('menuDiv', view);
+            var divScaleWidget = document.getElementById('divScaleWidget');
+
+            function updateScaleWidget() {
+                var value = view.getPixelsToMeters(200);
+                value = Math.floor(value);
+                var digit = Math.pow(10, value.toString().length - 1);
+                value = Math.round(value / digit) * digit;
+                var pix = view.getMetersToPixels(value);
+                var unit = 'm';
+                if (value >= 1000) {
+                    value /= 1000;
+                    unit = 'km';
+                }
+                divScaleWidget.innerHTML = `${value} ${unit}`;
+                divScaleWidget.style.width = `${pix}px`;
+            }
+
+            // Listen for globe full initialisation event
+            view.addEventListener(itowns.GLOBE_VIEW_EVENTS.GLOBE_INITIALIZED, function () {
+                // eslint-disable-next-line no-console
+                console.info('Globe initialized');
+                updateScaleWidget();
+            });
+            view.controls.addEventListener(itowns.CONTROL_EVENTS.RANGE_CHANGED, () => {
+                updateScaleWidget();
+            });
+
+            const atmosphere = view.getLayerById('atmosphere');
+            atmosphere.setRealisticOn(!view.isDebugMode);
+
+            const cRL = menuGlobe.addGUI('RealisticLighting', !view.isDebugMode, function (v) {
+                atmosphere.setRealisticOn(v);
+                view.notifyChange(atmosphere);
+            });
+
+            window.addEventListener('resize', updateScaleWidget);
+
+            debug.createTileDebugUI(menuGlobe.gui, view);
+        </script>
+    </body>
+</html>

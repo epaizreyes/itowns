@@ -1,4 +1,8 @@
 import * as THREE from 'three';
+import Coordinates from 'Core/Geographic/Coordinates';
+import proj4 from 'proj4';
+
+proj4.defs('EPSG:2154', '+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
 
 export default function computeBuffers(params) {
     // Create output buffers.
@@ -22,6 +26,8 @@ export default function computeBuffers(params) {
         //        * u = wgs84.u
         //        * v = textureid + v in builder texture
         uvs: [],
+        wgs84: null,
+        l93: null,
     };
     const computeUvs = [];
 
@@ -41,9 +47,11 @@ export default function computeBuffers(params) {
     outBuffers.normal = new Float32Array(nVertex * 3);
 
     const uvCount = params.builder.uvCount;
-    if (uvCount > 1) {
-        outBuffers.uvs[1] = new Float32Array(nVertex);
+    for (let i = 1; i < uvCount; i++) {
+        outBuffers.uvs[i] = new Float32Array(nVertex * 2);
     }
+    outBuffers.wgs84 = new Float32Array(nVertex * 2);
+    outBuffers.l93 = new Float32Array(nVertex * 2);
 
     computeUvs[0] = () => {};
     if (params.buildIndexAndUv_0) {
@@ -75,18 +83,19 @@ export default function computeBuffers(params) {
         const v = y / heightSegments;
 
         builder.vProjecte(v, params);
-        if (uvCount > 1) {
-            const u = builder.computeUvs[1](params);
-            computeUvs[1] = (id) => {
-                outBuffers.uvs[1][id] = u;
-            };
-        }
 
         for (let x = 0; x <= widthSegments; x++) {
             const u = x / widthSegments;
             const id_m3 = idVertex * 3;
 
             builder.uProjecte(u, params);
+            for (let i = 1; i < uvCount; i++) {
+                const v = builder.computeUvs[i](params);
+                computeUvs[i] = (id) => {
+                    outBuffers.uvs[i][id * 2 + 0] = u;
+                    outBuffers.uvs[i][id * 2 + 1] = v;
+                };
+            }
 
             const vertex = builder.vertexPosition(params, params.projected);
             const normal = builder.vertexNormal(params);
@@ -106,6 +115,14 @@ export default function computeBuffers(params) {
             for (const computeUv of computeUvs) {
                 computeUv(idVertex, u, v);
             }
+
+            outBuffers.wgs84[idVertex * 2 + 0] = params.projected.longitude;
+            outBuffers.wgs84[idVertex * 2 + 1] = params.projected.latitude;
+
+            const projected = new Coordinates('EPSG:4326', params.projected.longitude, params.projected.latitude);
+            const l93 = projected.as('EPSG:2154');
+            outBuffers.l93[idVertex * 2 + 0] = l93.x;
+            outBuffers.l93[idVertex * 2 + 1] = l93.y;
 
             if (!params.disableSkirt) {
                 if (y !== 0 && y !== heightSegments) {
@@ -202,9 +219,14 @@ export default function computeBuffers(params) {
 
             buildUVSkirt(id);
 
-            if (uvCount > 1) {
-                outBuffers.uvs[1][idVertex] = outBuffers.uvs[1][id];
+            for (let i = 1; i < uvCount; i++) {
+                outBuffers.uvs[i][idVertex * 2 + 0] = outBuffers.uvs[i][id * 2 + 0];
+                outBuffers.uvs[i][idVertex * 2 + 1] = outBuffers.uvs[i][id * 2 + 1];
             }
+            outBuffers.wgs84[idVertex * 2 + 0] = outBuffers.wgs84[id * 2 + 0];
+            outBuffers.wgs84[idVertex * 2 + 1] = outBuffers.wgs84[id * 2 + 1];
+            outBuffers.l93[idVertex * 2 + 0] = outBuffers.l93[id * 2 + 0];
+            outBuffers.l93[idVertex * 2 + 1] = outBuffers.l93[id * 2 + 1];
 
             const idf = (i + 1) % skirt.length;
 
