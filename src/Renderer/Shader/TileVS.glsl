@@ -4,10 +4,6 @@
 #include <itowns/project_pars_vertex>
 #include <itowns/elevation_pars_vertex>
 #include <logdepthbuf_pars_vertex>
-attribute vec2      uv_0;
-#if NUM_CRS > 1
-attribute vec2      uv_1;
-#endif
 attribute vec3      normal;
 attribute vec2      wgs84;
 attribute vec2      l93;
@@ -17,28 +13,27 @@ uniform bool lightingEnabled;
 
 #if MODE == MODE_FINAL
 #include <fog_pars_vertex>
-varying vec3        vUv;
 varying vec3        vNormal;
 #endif
 varying vec2        vWgs84;
+varying vec2        vPM;
 varying vec2        vL93;
 
-void main() {
-        vec2 uv = vec2(uv_0.x, 1.0 - uv_0.y);
+const float PI_OVER_4 = 0.25*PI;
+const float PI_OVER_360 = PI / 360.;
+const float PM_MAX = PI * 85.0511287798066 / 90.;
 
+void main() {
+        vWgs84 = wgs84;
+        vPM = vec2(wgs84.x, clamp(log(tan(PI_OVER_4 + PI_OVER_360 * wgs84.y)), -PM_MAX, PM_MAX));
+        vL93 = l93;
+        vec2 uv = wgs84;
         #include <begin_vertex>
         #include <itowns/elevation_vertex>
         #include <project_vertex>
         #include <logdepthbuf_vertex>
 #if MODE == MODE_FINAL
         #include <fog_vertex>
-        #if NUM_CRS > 1
-        vUv = vec3(uv_0, (uv_1.y > 0.) ? uv_1.y : uv_0.y); // set uv_1 = uv_0 if uv_1 is undefined
-        #else
-        vUv = vec3(uv_0, 0.0);
-        #endif
         vNormal = normalize ( mat3( modelMatrix[0].xyz, modelMatrix[1].xyz, modelMatrix[2].xyz ) * normal );
 #endif
-        vWgs84 = wgs84;
-        vL93 = l93;
 }

@@ -2,6 +2,9 @@
 #include <itowns/precision_qualifier>
 #include <logdepthbuf_pars_fragment>
 #include <itowns/pitUV>
+varying vec2        vWgs84;
+varying vec2        vPM;
+varying vec2        vL93;
 #include <itowns/color_layers_pars_fragment>
 #if MODE == MODE_FINAL
 #include <itowns/fog_pars_fragment>
@@ -13,8 +16,6 @@
 uniform vec3        diffuse;
 uniform float       opacity;
 varying vec3        vUv; // uv_0.x/uv_1.x, uv_0.y, uv_1.y
-varying vec2        vWgs84;
-varying vec2        vL93;
 
 void main() {
     #include <logdepthbuf_fragment>
@@ -31,16 +32,14 @@ void main() {
 
     gl_FragColor = vec4(diffuse, opacity);
 
-    uvs[0] = vec3(vUv.xy, 0.);
-
-#if NUM_CRS > 1
-    uvs[1] = vec3(vUv.x, fract(vUv.z), floor(vUv.z));
-#endif
+    uvs[0] = vWgs84;
+    uvs[1] = vPM;
+    uvs[2] = vL93;
 
     vec4 color;
     #pragma unroll_loop
     for ( int i = 0; i < NUM_FS_TEXTURES; i ++ ) {
-        color = getLayerColor( i , colorTextures[ i ], colorOffsetScales[ i ], colorLayers[ i ]);
+        color = getLayerColor( i , colorTextures[ i ], colorExtents[ i ], colorLayers[ i ]);
         gl_FragColor.rgb = mix(gl_FragColor.rgb, color.rgb, color.a);
     }
 
@@ -60,5 +59,5 @@ void main() {
 #endif
 gl_FragColor.rg = mix(gl_FragColor.rg,fract(vWgs84/10.),0.1);
 if (vL93.x > -357823.2365 && vL93.x < 1313632.3628 && vL93.y >  6037008.6939 && vL93.y < 7230727.3772)
-       gl_FragColor.rg = mix(gl_FragColor.rg,fract(vL93/500000.),0.5);
+       gl_FragColor.rg = mix(gl_FragColor.rg,fract(vL93/100000.),0.5);
 }

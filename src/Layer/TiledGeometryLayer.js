@@ -394,7 +394,7 @@ class TiledGeometryLayer extends GeometryLayer {
             return false;
         }
 
-        // Prevent to subdivise the node if the current elevation level
+        // Prevent to subdivide the node if the current elevation level
         // we must avoid a tile, with level 20, inherits a level 3 elevation texture.
         // The induced geometric error is much too large and distorts the SSE
         const nodeLayer = node.material.getElevationLayer();

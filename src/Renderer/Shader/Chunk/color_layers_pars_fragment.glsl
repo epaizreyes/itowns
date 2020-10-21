@@ -6,11 +6,11 @@ struct Layer {
 };
 
 uniform sampler2D   colorTextures[NUM_FS_TEXTURES];
-uniform vec4        colorOffsetScales[NUM_FS_TEXTURES];
 uniform Layer       colorLayers[NUM_FS_TEXTURES];
+uniform vec4        colorExtents[NUM_FS_TEXTURES];
 uniform int         colorTextureCount;
 
-vec3 uvs[NUM_CRS];
+vec2 uvs[NUM_CRS];
 
 float getBorderDistance(vec2 uv) {
     vec2 p2 = min(uv, 1. -uv);
@@ -42,18 +42,24 @@ vec4 getOutlineColor(vec3 outlineColor, vec2 uv) {
 #endif
 
 uniform float minBorderDistance;
-vec4 getLayerColor(int textureOffset, sampler2D tex, vec4 offsetScale, Layer layer) {
+vec4 getLayerColor(int textureOffset, sampler2D tex, vec4 extent, Layer layer) {
     if ( textureOffset >= colorTextureCount ) return vec4(0);
 
-    vec3 uv;
+    vec2 uv;
     // #pragma unroll_loop
     for ( int i = 0; i < NUM_CRS; i ++ ) {
         if ( i == layer.crs ) uv = uvs[ i ];
     }
 
+    vec4 uvuv = vec4(uv, extent.zw) - extent.xyxy;
+    uv = uvuv.xy/uvuv.zw;
+
     float borderDistance = getBorderDistance(uv.xy);
-    if (textureOffset != layer.textureOffset + int(uv.z) || borderDistance < minBorderDistance ) return vec4(0);
-    vec4 color = texture2D(tex, pitUV(uv.xy, offsetScale));
+    //if (textureOffset != layer.textureOffset + int(uv.z) || borderDistance < minBorderDistance ) return vec4(0);
+    //vec4 color = texture2D(tex, pitUV(uv.xy, offsetScale));
+    if (borderDistance < 0.000) // minBorderDistance )
+       return vec4(0);
+    vec4 color = texture2D(tex, uv.xy);
     if(color.a > 0.0) {
         if(layer.effect > 2.0) {
             color.rgb /= color.a;

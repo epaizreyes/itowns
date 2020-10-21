@@ -24,7 +24,7 @@ export default function newTileGeometry(builder, params) {
         params.center = builder.center(params.extent).clone();
         // Read previously cached values (index and uv.wgs84 only depend on the # of triangles)
         let cachedBuffers = cacheBuffer.get(bufferKey);
-        params.buildIndexAndUv_0 = !cachedBuffers;
+        params.buildIndex = !cachedBuffers;
         params.builder = builder;
         let buffers;
         try {
@@ -36,21 +36,16 @@ export default function newTileGeometry(builder, params) {
         if (!cachedBuffers) {
             cachedBuffers = {};
             cachedBuffers.index = new THREE.BufferAttribute(buffers.index, 1);
-            cachedBuffers.uv = new THREE.BufferAttribute(buffers.uvs[0], 2);
 
             // Update cacheBuffer
             cacheBuffer.set(bufferKey, cachedBuffers);
         }
 
         buffers.index = cachedBuffers.index;
-        buffers.uvs[0] = cachedBuffers.uv;
         buffers.position = new THREE.BufferAttribute(buffers.position, 3);
         buffers.normal = new THREE.BufferAttribute(buffers.normal, 3);
         buffers.wgs84 = new THREE.BufferAttribute(buffers.wgs84, 2);
         buffers.l93 = new THREE.BufferAttribute(buffers.l93, 2);
-        for (let i = 1; i < params.builder.uvCount; i++) {
-            buffers.uvs[i] = new THREE.BufferAttribute(buffers.uvs[i], 2);
-        }
         const geometry = new TileGeometry(params, buffers);
         geometry.OBB = new OBB(geometry.boundingBox.min, geometry.boundingBox.max);
         geometry._count = 0;

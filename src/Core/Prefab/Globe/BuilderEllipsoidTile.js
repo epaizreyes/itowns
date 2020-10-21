@@ -1,15 +1,9 @@
 import * as THREE from 'three';
 import Coordinates from 'Core/Geographic/Coordinates';
 
-const PI_OV_FOUR = Math.PI / 4;
-const INV_TWO_PI = 1.0 / (Math.PI * 2);
 const axisY = new THREE.Vector3(0, 1, 0);
 const quatToAlignLatitude = new THREE.Quaternion();
 const quatNormalToZ = new THREE.Quaternion();
-
-function WGS84ToOneSubY(latitude) {
-    return 1.0 - (0.5 - Math.log(Math.tan(PI_OV_FOUR + THREE.MathUtils.degToRad(latitude) * 0.5)) * INV_TWO_PI);
-}
 
 class BuilderEllipsoidTile {
     constructor(options = {}) {
@@ -24,33 +18,11 @@ class BuilderEllipsoidTile {
         this.crs = options.crs;
         // Order crs projection on tiles
         this.uvCount = options.uvCount;
-
-        this.computeUvs = [
-            // Normalized coordinates (from degree) on the entire tile
-            // EPSG:4326
-            () => {},
-            // Float row coordinate from Pseudo mercator coordinates
-            // EPSG:3857
-            (params) => {
-                const t = WGS84ToOneSubY(params.projected.latitude) * params.nbRow;
-                return (!isFinite(t) ? 0 : t) - params.deltaUV1;
-            },
-        ];
     }
     // prepare params
     // init projected object -> params.projected
     prepare(params) {
         params.nbRow = 2 ** (params.level + 1.0);
-
-        var st1 = WGS84ToOneSubY(params.extent.south);
-
-        if (!isFinite(st1)) { st1 = 0; }
-
-        var sizeTexture = 1.0 / params.nbRow;
-
-        var start = (st1 % (sizeTexture));
-
-        params.deltaUV1 = (st1 - start) * params.nbRow;
 
         // transformation to align tile's normal to z axis
         params.quatNormalToZ = quatNormalToZ.setFromAxisAngle(
