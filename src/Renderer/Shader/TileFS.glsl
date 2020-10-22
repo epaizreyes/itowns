@@ -2,10 +2,6 @@
 #include <itowns/precision_qualifier>
 #include <logdepthbuf_pars_fragment>
 #include <itowns/pitUV>
-varying vec2        vWgs84;
-varying vec2        vPM;
-varying vec2        vL93;
-varying vec2        vUv;
 #include <itowns/color_layers_pars_fragment>
 #if MODE == MODE_FINAL
 #include <itowns/fog_pars_fragment>
@@ -16,6 +12,11 @@ varying vec2        vUv;
 
 uniform vec3        diffuse;
 uniform float       opacity;
+
+varying vec2        vWgs84;
+varying vec2        vPM;
+varying vec2        vL93;
+varying vec2        vUv;
 
 void main() {
     #include <logdepthbuf_fragment>
@@ -59,5 +60,5 @@ void main() {
 #endif
 gl_FragColor.rg = mix(gl_FragColor.rg,fract(vWgs84/10.),0.1);
 if (vL93.x > -357823.2365 && vL93.x < 1313632.3628 && vL93.y >  6037008.6939 && vL93.y < 7230727.3772)
-       gl_FragColor.rg = mix(gl_FragColor.rg,fract(vL93/100000.),0.5);
+       gl_FragColor.rg = mix(gl_FragColor.rg,fract(vL93/100000.),0.2);
 }

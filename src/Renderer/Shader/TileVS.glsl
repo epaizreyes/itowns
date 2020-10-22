@@ -45,10 +45,9 @@ void main() {
                 normal = vec3(coswgs84.y*coswgs84.x, coswgs84.y*sinwgs84.x, sinwgs84.y);
         #endif
         vWgs84 = wgs84;
-        vPM = vec2(wgs84.x, clamp(log(tan(PI_OVER_4 + PI_OVER_360 * wgs84.y)), -PM_MAX, PM_MAX));
+        vPM = vec2(wgs84.x, clamp(log(abs(tan(PI_OVER_4 + PI_OVER_360 * wgs84.y))), -PM_MAX, PM_MAX));
         vL93 = l93;
         vUv = uv;
-        vec2 uv = wgs84;
         #include <begin_vertex>
         #include <itowns/elevation_vertex>
         #include <project_vertex>
