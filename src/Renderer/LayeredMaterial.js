@@ -61,12 +61,18 @@ function updateLayersUniforms(uniforms, olayers, max) {
         for (let i = 0, il = layer.textures.length; i < il; ++i, ++count) {
             const t = layer.textures[i];
             if (count < max && t.extent) {
-                const e = t.extent.as('EPSG:4326');
-                if (t.extent.crs == 'TMS:3857') {
-                    e.south = Math.log(Math.tan(PI_OVER_4 + PI_OVER_360 * e.south));
-                    e.north = Math.log(Math.tan(PI_OVER_4 + PI_OVER_360 * e.north));
+                let extent = t.extent;
+                if (extent.crs == 'TMS:3857') {
+                    extent = extent.as('EPSG:4326');
+                    extent.south = Math.log(Math.tan(PI_OVER_4 + PI_OVER_360 * extent.south));
+                    extent.north = Math.log(Math.tan(PI_OVER_4 + PI_OVER_360 * extent.north));
+                } else if (extent.crs == 'TMS:4326') {
+                    extent = extent.as('EPSG:4326');
+                } else if (extent.crs == 'TMS:3946') {
+                    extent = extent.as('EPSG:3946');
                 }
-                extents[count].set(e.west, e.south, e.east, e.north);
+
+                extents[count].set(extent.west, extent.south, extent.east, extent.north);
                 textures[count] = t;
                 layers[count] = layer;
             }
@@ -145,6 +151,7 @@ class LayeredMaterial extends THREE.RawShaderMaterial {
         CommonMaterial.setUniformProperty(this, 'overlayAlpha', 0);
         CommonMaterial.setUniformProperty(this, 'overlayColor', new THREE.Color(1.0, 0.3, 0.0));
         CommonMaterial.setUniformProperty(this, 'objectId', 0);
+        CommonMaterial.setUniformProperty(this, 'extent', fullExtent.clone());
 
         // > 0 produces gaps,
         // < 0 causes oversampling of textures

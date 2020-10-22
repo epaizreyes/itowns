@@ -8,7 +8,7 @@ const cacheBuffer = new Map();
 const cacheTile = new Cache();
 
 export default function newTileGeometry(builder, params) {
-    const { sharableExtent, quaternion, position } = builder.computeSharableExtent(params.extent);
+    const sharableExtent = params.extent;
     const south = sharableExtent.south.toFixed(6);
     const east = sharableExtent.east.toFixed(6);
     const bufferKey = `${builder.crs}_${params.disableSkirt ? 0 : 1}_${params.segment}`;
@@ -46,6 +46,8 @@ export default function newTileGeometry(builder, params) {
         buffers.normal = new THREE.BufferAttribute(buffers.normal, 3);
         buffers.wgs84 = new THREE.BufferAttribute(buffers.wgs84, 2);
         buffers.l93 = new THREE.BufferAttribute(buffers.l93, 2);
+        buffers.uv = new THREE.BufferAttribute(buffers.uv, 2);
+
         const geometry = new TileGeometry(params, buffers);
         geometry.OBB = new OBB(geometry.boundingBox.min, geometry.boundingBox.max);
         geometry._count = 0;
@@ -63,8 +65,8 @@ export default function newTileGeometry(builder, params) {
             }
         };
         resolve(geometry);
-        return Promise.resolve({ geometry, quaternion, position });
+        return Promise.resolve(geometry);
     }
 
-    return promiseGeometry.then(geometry => ({ geometry, quaternion, position }));
+    return promiseGeometry;
 }

@@ -51,27 +51,17 @@ export default {
             disableSkirt: layer.disableSkirt,
         };
 
-        return newTileGeometry(builder, paramsGeometry).then((result) => {
+        return newTileGeometry(builder, paramsGeometry).then((geometry) => {
             // build tile mesh
-            result.geometry._count++;
+            geometry._count++;
             const crsCount = layer.tileMatrixSets.length;
             const material = new LayeredMaterial(layer.materialOptions, crsCount);
-            const tile = new TileMesh(result.geometry, material, layer, extent, level);
+            const tile = new TileMesh(geometry, material, layer, extent, level);
 
             // Commented because layer.threejsLayer is undefined;
             // Fix me: conflict with object3d added in view.scene;
             // tile.layers.set(layer.threejsLayer);
 
-            if (parent && parent.isTileMesh) {
-                // get parent extent transformation
-                const pTrans = builder.computeSharableExtent(parent.extent);
-                // place relative to his parent
-                result.position.sub(pTrans.position).applyQuaternion(pTrans.quaternion.inverse());
-                result.quaternion.premultiply(pTrans.quaternion);
-            }
-
-            tile.position.copy(result.position);
-            tile.quaternion.copy(result.quaternion);
             tile.visible = false;
             tile.updateMatrix();
 

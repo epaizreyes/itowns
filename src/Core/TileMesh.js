@@ -25,6 +25,7 @@ class TileMesh extends THREE.Mesh {
         this.level = level;
 
         this.material.objectId = this.id;
+        this.material.extent.set(extent.west, extent.south, extent.east, extent.north);
 
         this.obb = this.geometry.OBB.clone();
         this.boundingSphere = new THREE.Sphere();

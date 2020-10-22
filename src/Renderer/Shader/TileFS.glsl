@@ -5,6 +5,7 @@
 varying vec2        vWgs84;
 varying vec2        vPM;
 varying vec2        vL93;
+varying vec2        vUv;
 #include <itowns/color_layers_pars_fragment>
 #if MODE == MODE_FINAL
 #include <itowns/fog_pars_fragment>
@@ -15,7 +16,6 @@ varying vec2        vL93;
 
 uniform vec3        diffuse;
 uniform float       opacity;
-varying vec3        vUv; // uv_0.x/uv_1.x, uv_0.y, uv_1.y
 
 void main() {
     #include <logdepthbuf_fragment>
