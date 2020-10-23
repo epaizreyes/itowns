@@ -16,10 +16,13 @@ uniform float       opacity;
 varying vec2        vWgs84;
 varying vec2        vPM;
 varying vec2        vL93;
-varying vec2        vUv;
 
 void main() {
     #include <logdepthbuf_fragment>
+
+    uvs[0] = vWgs84;
+    uvs[1] = vPM;
+    uvs[2] = vL93;
 
 #if MODE == MODE_ID
 
@@ -32,10 +35,6 @@ void main() {
 #else
 
     gl_FragColor = vec4(diffuse, opacity);
-
-    uvs[0] = vWgs84;
-    uvs[1] = vPM;
-    uvs[2] = vL93;
 
     vec4 color;
     #pragma unroll_loop

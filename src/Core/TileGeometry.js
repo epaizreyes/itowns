@@ -7,10 +7,6 @@ function defaultBuffers(params) {
     const buffers = computeBuffers(params);
     buffers.index = new THREE.BufferAttribute(buffers.index, 1);
     buffers.position = new THREE.BufferAttribute(buffers.position, 3);
-    buffers.normal = new THREE.BufferAttribute(buffers.normal, 3);
-    buffers.wgs84 = new THREE.BufferAttribute(buffers.wgs84, 2);
-    buffers.l93 = new THREE.BufferAttribute(buffers.l93, 2);
-    buffers.uv = new THREE.BufferAttribute(buffers.uv, 2);
     return buffers;
 }
 
@@ -22,10 +18,6 @@ class TileGeometry extends THREE.BufferGeometry {
 
         this.setIndex(buffers.index);
         this.setAttribute('position', buffers.position);
-        this.setAttribute('normal', buffers.normal);
-        this.setAttribute('wgs84', buffers.wgs84);
-        this.setAttribute('l93', buffers.l93);
-        this.setAttribute('uv', buffers.uv);
 
         this.computeBoundingBox();
         this.OBB = {};

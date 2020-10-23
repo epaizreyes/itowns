@@ -1,5 +1,3 @@
-import * as THREE from 'three';
-import Coordinates from 'Core/Geographic/Coordinates';
 import proj4 from 'proj4';
 
 proj4.defs('EPSG:2154', '+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
@@ -9,10 +7,6 @@ export default function computeBuffers(params) {
     const outBuffers = {
         index: null,
         position: null,
-        normal: null,
-        wgs84: null,
-        l93: null,
-        uv: null,
     };
 
     const builder = params.builder;
@@ -28,10 +22,6 @@ export default function computeBuffers(params) {
     const triangles = (nSeg) * (nSeg) * 2 + (params.disableSkirt ? 0 : 4 * nSeg * 2);
 
     outBuffers.position = new Float32Array(nVertex * 3);
-    outBuffers.normal = new Float32Array(nVertex * 3);
-    outBuffers.wgs84 = new Float32Array(nVertex * 2);
-    outBuffers.l93 = new Float32Array(nVertex * 2);
-    outBuffers.uv = new Float32Array(nVertex * 2);
 
     if (params.buildIndex) {
         if (nVertex < 2 ** 8) {
@@ -64,22 +54,11 @@ export default function computeBuffers(params) {
 
             builder.uProjecte(u, params);
 
-            const vertex = builder.vertexPosition(params, params.projected);
-            const normal = builder.vertexNormal(params);
+            builder.vertexPosition(params, params.projected);
 
-            vertex.toArray(outBuffers.position, id_m3);
-            normal.toArray(outBuffers.normal, id_m3);
-
-            outBuffers.wgs84[idVertex * 2 + 0] = params.projected.longitude;
-            outBuffers.wgs84[idVertex * 2 + 1] = params.projected.latitude;
-
-            const projected = new Coordinates('EPSG:4326', params.projected.longitude, params.projected.latitude);
-            const l93 = projected.as('EPSG:2154');
-            outBuffers.l93[idVertex * 2 + 0] = l93.x;
-            outBuffers.l93[idVertex * 2 + 1] = l93.y;
-
-            outBuffers.uv[idVertex * 2 + 0] = u;
-            outBuffers.uv[idVertex * 2 + 1] = v;
+            outBuffers.position[id_m3 + 0] = u;
+            outBuffers.position[id_m3 + 1] = v;
+            outBuffers.position[id_m3 + 2] = 0;
 
             if (!params.disableSkirt) {
                 if (y !== 0 && y !== heightSegments) {
@@ -138,10 +117,6 @@ export default function computeBuffers(params) {
     // The size of the skirt is now a ratio of the size of the tile.
     // To be perfect it should depend on the real elevation delta but too heavy to compute
     if (!params.disableSkirt) {
-        // We compute the actual size of tile segment to use later for the skirt.
-        const segmentSize = new THREE.Vector3().fromArray(outBuffers.position).distanceTo(
-            new THREE.Vector3().fromArray(outBuffers.position, 3));
-
         let buildIndexSkirt = function buildIndexSkirt() { };
 
         if (params.buildIndex) {
@@ -157,24 +132,9 @@ export default function computeBuffers(params) {
             const id_m3 = idVertex * 3;
             const id2_m3 = id * 3;
 
-            outBuffers.position[id_m3 + 0] = outBuffers.position[id2_m3 + 0]
-                - outBuffers.normal[id2_m3 + 0] * segmentSize;
-            outBuffers.position[id_m3 + 1] = outBuffers.position[id2_m3 + 1]
-                - outBuffers.normal[id2_m3 + 1] * segmentSize;
-            outBuffers.position[id_m3 + 2] = outBuffers.position[id2_m3 + 2]
-                - outBuffers.normal[id2_m3 + 2] * segmentSize;
-
-            outBuffers.normal[id_m3 + 0] = outBuffers.normal[id2_m3 + 0];
-            outBuffers.normal[id_m3 + 1] = outBuffers.normal[id2_m3 + 1];
-            outBuffers.normal[id_m3 + 2] = outBuffers.normal[id2_m3 + 2];
-
-            outBuffers.wgs84[idVertex * 2 + 0] = outBuffers.wgs84[id * 2 + 0];
-            outBuffers.wgs84[idVertex * 2 + 1] = outBuffers.wgs84[id * 2 + 1];
-            outBuffers.l93[idVertex * 2 + 0] = outBuffers.l93[id * 2 + 0];
-            outBuffers.l93[idVertex * 2 + 1] = outBuffers.l93[id * 2 + 1];
-
-            outBuffers.uv[idVertex * 2 + 0] = outBuffers.uv[id * 2 + 0];
-            outBuffers.uv[idVertex * 2 + 1] = outBuffers.uv[id * 2 + 1];
+            outBuffers.position[id_m3 + 0] = outBuffers.position[id2_m3 + 0];
+            outBuffers.position[id_m3 + 1] = outBuffers.position[id2_m3 + 1];
+            outBuffers.position[id_m3 + 2] = -1;
 
             const idf = (i + 1) % skirt.length;
 

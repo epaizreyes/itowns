@@ -22,6 +22,26 @@ export function unpack1K(color, factor) {
     return factor ? bitSh.dot(color) * factor : bitSh.dot(color);
 }
 
+// From glsl-proj4
+const proj_l93 = {
+    lon0: 0.05235987755982989,
+    p0: new THREE.Vector3(700000, 6600000, 0),
+    k0: 1,
+    e: 0.08181919104281582,
+    ns: 0.725607765053269,
+    af0: 11754255.426096005,
+    rh: 6055612.049875989,
+};
+const proj_wgs84 = {
+    a: 6378137,
+    b: 6356752.314245179,
+    e: 0.08181919084262149,
+    eprime: 0.08209443794969568,
+    e2: 0.006694379990141283,
+    p0: new THREE.Vector3(0, 0, 0),
+    k0: 1,
+};
+
 // Max sampler color count to LayeredMaterial
 // Because there's a statement limitation to unroll, in getColorAtIdUv method
 const maxSamplersColorCount = 15;
@@ -70,6 +90,8 @@ function updateLayersUniforms(uniforms, olayers, max) {
                     extent = extent.as('EPSG:4326');
                 } else if (extent.crs == 'TMS:3946') {
                     extent = extent.as('EPSG:3946');
+                } else {
+                    console.warn(extent.crs, ' extents are not handled yet');
                 }
 
                 extents[count].set(extent.west, extent.south, extent.east, extent.north);
@@ -140,6 +162,7 @@ class LayeredMaterial extends THREE.RawShaderMaterial {
         // Color uniforms
         CommonMaterial.setUniformProperty(this, 'diffuse', new THREE.Color(0.04, 0.23, 0.35));
         CommonMaterial.setUniformProperty(this, 'opacity', this.opacity);
+        CommonMaterial.setUniformProperty(this, 'skirtHeight', 0.0);
 
         // Lighting uniforms
         CommonMaterial.setUniformProperty(this, 'lightingEnabled', false);
@@ -182,6 +205,9 @@ class LayeredMaterial extends THREE.RawShaderMaterial {
         for (let i = 0; i < nbSamplers[1]; ++i) {
             this.uniforms.colorExtents.value[i] = fullExtent.clone();
         }
+
+        this.uniforms.proj_geocent = new THREE.Uniform([proj_wgs84]);
+        this.uniforms.proj_lcc = new THREE.Uniform([proj_l93]);
 
         let _visible = this.visible;
         // can't do an ES6 setter/getter here

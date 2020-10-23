@@ -43,10 +43,6 @@ export default function newTileGeometry(builder, params) {
 
         buffers.index = cachedBuffers.index;
         buffers.position = new THREE.BufferAttribute(buffers.position, 3);
-        buffers.normal = new THREE.BufferAttribute(buffers.normal, 3);
-        buffers.wgs84 = new THREE.BufferAttribute(buffers.wgs84, 2);
-        buffers.l93 = new THREE.BufferAttribute(buffers.l93, 2);
-        buffers.uv = new THREE.BufferAttribute(buffers.uv, 2);
 
         const geometry = new TileGeometry(params, buffers);
         geometry.OBB = new OBB(geometry.boundingBox.min, geometry.boundingBox.max);
