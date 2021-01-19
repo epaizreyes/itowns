@@ -17,11 +17,13 @@ export { updateLayeredMaterialNodeImagery, updateLayeredMaterialNodeElevation } 
 export { default as OrientedImageCamera } from 'Renderer/OrientedImageCamera';
 export { default as PointsMaterial } from 'Renderer/PointsMaterial';
 export { default as FlyControls } from 'Controls/FlyControls';
-export { default as FirstPersonControls } from 'Controls/FirstPersonControls';
-export { default as StreetControls } from 'Controls/StreetControls';
+export { default as FirstPersonControls } from 'Controls/FirstPersonControlsMod';
+export { default as StreetControls } from 'Controls/StreetControlsMod';
 export { default as PlanarControls } from 'Controls/PlanarControls';
+export { default as GlobeControls } from 'Controls/GlobeControlsMod';
 export { CONTROL_EVENTS } from 'Controls/GlobeControls';
 export { default as Feature2Mesh } from 'Converter/Feature2Mesh';
+export { default as Feature2MeshMod } from 'Converter/Feature2MeshMod';
 export { default as FeaturesUtils } from 'Utils/FeaturesUtils';
 export { default as DEMUtils } from 'Utils/DEMUtils';
 export { default as CameraUtils } from 'Utils/CameraUtils';

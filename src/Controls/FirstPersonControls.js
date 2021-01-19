@@ -275,6 +275,32 @@ class FirstPersonControls extends THREE.EventDispatcher {
             e.preventDefault();
         }
     }
+
+    dispose() {
+        if (!this.eventListeners) {
+            this.view.domElement.removeEventListener('mousedown', this._onMouseDown, false);
+            this.view.domElement.removeEventListener('touchstart', this._onMouseDown, false);
+            this.view.domElement.removeEventListener('mousemove', this._onMouseMove, false);
+            this.view.domElement.removeEventListener('touchmove', this._onMouseMove, false);
+            this.view.domElement.removeEventListener('mouseup', this._onMouseUp, false);
+            this.view.domElement.removeEventListener('touchend', this._onMouseUp, false);
+            this.view.domElement.removeEventListener('mousewheel', this._onMouseWheel, false);
+            this.view.domElement.removeEventListener('DOMMouseScroll', this._onMouseWheel, false); // firefox
+
+            document.removeEventListener('keydown', this._onKeyDown, false);
+            document.removeEventListener('keyup', this._onKeyUp, false);
+        }
+
+        if (this.focusOnMouseOver) {
+            this.view.domElement.removeEventListener('mouseover', this._onFocus);
+        }
+
+        if (this.focusOnClick) {
+            this.view.domElement.removeEventListener('click', this._onFocus);
+        }
+
+        this.dispatchEvent({ type: 'dispose' });
+    }
 }
 
 export default FirstPersonControls;

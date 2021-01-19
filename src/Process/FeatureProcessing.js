@@ -17,6 +17,7 @@ function applyMatrix4(obj, mat4) {
 function assignLayer(object, layer) {
     if (object) {
         object.layer = layer;
+        /*
         if (object.material) {
             object.material.transparent = layer.opacity < 1.0;
             object.material.opacity = layer.opacity;
@@ -28,7 +29,7 @@ function assignLayer(object, layer) {
             if (layer.linewidth) {
                 object.material.linewidth = layer.linewidth;
             }
-        }
+        } */
         object.layers.set(layer.threejsLayer);
         for (const c of object.children) {
             assignLayer(c, layer);
