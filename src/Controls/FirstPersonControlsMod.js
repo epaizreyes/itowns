@@ -272,9 +272,9 @@ class FirstPersonControls extends THREE.EventDispatcher {
         }
 
         if (delta > 0) {
-            this.dollyOut();
-        } else if (delta < 0) {
             this.dollyIn();
+        } else if (delta < 0) {
+            this.dollyOut();
         }
     }
 
